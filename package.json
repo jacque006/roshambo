@@ -13,6 +13,7 @@
     "clear-store": "rm -rf ./store",
     "codegen": "aztec codegen target --outdir src/artifacts",
     "compile": "${AZTEC_NARGO:-aztec-nargo} compile",
+    "postcompile": "yarn codegen",
     "deploy": "node --loader ts-node/esm scripts/deploy_contract.ts",
     "deploy-account": "node --loader ts-node/esm scripts/deploy_account.ts",
     "multiple-pxe": "node --loader ts-node/esm scripts/multiple_pxe.ts",

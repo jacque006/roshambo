@@ -6,7 +6,7 @@ import { foundry } from 'viem/chains'
 import { mnemonicToAccount } from 'viem/accounts';
 import { FeeJuiceContract } from "@aztec/noir-contracts.js/FeeJuice";
 import { FPCContract } from "@aztec/noir-contracts.js/FPC";
-import { EasyPrivateVotingContract } from "../src/artifacts/EasyPrivateVoting.js"
+import { RoshamboGame } from "../src/artifacts/RoshamboGame.js"
 import { TokenContract } from "@aztec/noir-contracts.js/Token";
 // TODO: replace with import from aztec.js when published
 import { SponsoredFeePaymentMethod } from '@aztec/aztec.js/fee/testing'
@@ -67,7 +67,7 @@ async function main() {
     const paymentMethod = new SponsoredFeePaymentMethod(sponsoredFPC.address);
 
     // Two arbitrary txs to make the L1 message available on L2
-    const votingContract = await EasyPrivateVotingContract.deploy(wallet1, wallet1.getAddress()).send({ fee: { paymentMethod } }).deployed();
+    const votingContract = await RoshamboGame.deploy(wallet1, wallet1.getAddress()).send({ fee: { paymentMethod } }).deployed();
     const bananaCoin = await TokenContract.deploy(wallet1, wallet1.getAddress(), "bananaCoin", "BNC", 18).send({ fee: { paymentMethod } }).deployed()
 
     // Claim Fee Juice & Pay Fees yourself

@@ -1,4 +1,4 @@
-import { EasyPrivateVotingContractArtifact, EasyPrivateVotingContract } from "../../artifacts/EasyPrivateVoting.js"
+import { RoshamboGameContractArtifact, RoshamboGameContract } from "../../artifacts/RoshamboGame.js"
 import { AccountManager, AccountWallet, CompleteAddress, ContractDeployer, createLogger, Fr, PXE, TxStatus, getContractInstanceFromDeployParams, Logger, ContractInstanceWithAddress } from "@aztec/aztec.js";
 import { generateSchnorrAccounts } from "@aztec/accounts/testing"
 import { getSchnorrAccount } from '@aztec/accounts/schnorr';
@@ -88,7 +88,7 @@ describe("Voting", () => {
 
     it("Deploys the contract", async () => {
         const salt = Fr.random();
-        const VotingContractArtifact = EasyPrivateVotingContractArtifact
+        const VotingContractArtifact = RoshamboGameContractArtifact
         const accounts = await Promise.all(
             (await generateSchnorrAccounts(2)).map(
                 async a => await getSchnorrAccount(pxe, a.secret, a.signingKey, a.salt)
@@ -134,7 +134,7 @@ describe("Voting", () => {
     it("It casts a vote", async () => {
         const candidate = new Fr(1)
 
-        const contract = await EasyPrivateVotingContract.deploy(firstWallet, firstWallet.getAddress()).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).deployed();
+        const contract = await RoshamboGameContract.deploy(firstWallet, firstWallet.getAddress()).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).deployed();
         const tx = await contract.methods.cast_vote(candidate).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
         let count = await contract.methods.get_vote(candidate).simulate();
         expect(count).toBe(1n);
@@ -143,7 +143,7 @@ describe("Voting", () => {
     it("It should fail when trying to vote twice", async () => {
         const candidate = new Fr(1)
 
-        const votingContract = await EasyPrivateVotingContract.deploy(firstWallet, firstWallet.getAddress()).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).deployed();
+        const votingContract = await RoshamboGameContract.deploy(firstWallet, firstWallet.getAddress()).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).deployed();
         await votingContract.methods.cast_vote(candidate).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
         expect(await votingContract.methods.get_vote(candidate).simulate()).toBe(1n);
 

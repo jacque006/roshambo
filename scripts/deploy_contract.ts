@@ -1,4 +1,4 @@
-import { EasyPrivateVotingContract } from "../src/artifacts/EasyPrivateVoting.js"
+import { RoshamboGame } from "../src/artifacts/RoshamboGame.js"
 import { createLogger, PXE, Logger, SponsoredFeePaymentMethod, Fr } from "@aztec/aztec.js";
 import { setupPXE } from "../src/utils/setup_pxe.js";
 import { getSponsoredFPCInstance } from "../src/utils/sponsored_fpc.js";
@@ -22,7 +22,7 @@ async function main() {
     const wallet = await accountManager.getWallet();
     const address = accountManager.getAddress();
 
-    const votingContract = await EasyPrivateVotingContract.deploy(wallet, address).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).deployed();
+    const votingContract = await RoshamboGame.deploy(wallet, address).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).deployed();
     logger.info(`Voting Contract deployed at: ${votingContract.address}`);
 }
 

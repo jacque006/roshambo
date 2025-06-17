@@ -1,4 +1,4 @@
-import { EasyPrivateVotingContractArtifact, EasyPrivateVotingContract } from "../../artifacts/EasyPrivateVoting.js"
+import { RoshamboGameContractArtifact, RoshamboGameContract } from "../../artifacts/RoshamboGame.js"
 import { AccountManager, AccountWallet, ContractDeployer, createLogger, Fr, PXE, TxStatus, getContractInstanceFromDeployParams, Logger } from "@aztec/aztec.js";
 import { generateSchnorrAccounts } from "@aztec/accounts/testing"
 import { getSchnorrAccount } from '@aztec/accounts/schnorr';
@@ -105,8 +105,8 @@ describe("Accounts", () => {
         }
 
         // arbitrary transactions to progress 2 blocks, and have fee juice on Aztec ready to claim
-        await EasyPrivateVotingContract.deploy(ownerWallet, ownerWallet.getAddress()).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).deployed(); // deploy contract with first funded wallet
-        await EasyPrivateVotingContract.deploy(ownerWallet, ownerWallet.getAddress()).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).deployed(); // deploy contract with first funded wallet
+        await RoshamboGameContract.deploy(ownerWallet, ownerWallet.getAddress()).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).deployed(); // deploy contract with first funded wallet
+        await RoshamboGameContract.deploy(ownerWallet, ownerWallet.getAddress()).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).deployed(); // deploy contract with first funded wallet
 
         // claim and pay to deploy random accounts
         let sentTxs = [];
@@ -138,7 +138,6 @@ describe("Accounts", () => {
 
     it("Sponsored contract deployment", async () => {
         const salt = Fr.random();
-        const VotingContractArtifact = EasyPrivateVotingContractArtifact
         const accounts = await Promise.all(
             (await generateSchnorrAccounts(2)).map(
                 async a => await getSchnorrAccount(pxe, a.secret, a.signingKey, a.salt)
@@ -149,13 +148,13 @@ describe("Accounts", () => {
         const [deployerWallet, adminWallet] = daWallets;
         const [deployerAddress, adminAddress] = daWallets.map(w => w.getAddress());
 
-        const deploymentData = await getContractInstanceFromDeployParams(VotingContractArtifact,
+        const deploymentData = await getContractInstanceFromDeployParams(RoshamboGameContractArtifact,
             {
                 constructorArgs: [adminAddress],
                 salt,
                 deployer: deployerWallet.getAddress()
             });
-        const deployer = new ContractDeployer(VotingContractArtifact, deployerWallet);
+        const deployer = new ContractDeployer(RoshamboGameContractArtifact, deployerWallet);
         const tx = deployer.deploy(adminAddress).send({
             contractAddressSalt: salt,
             fee: { paymentMethod: sponsoredPaymentMethod } // without the sponsoredFPC the deployment fails, thus confirming it works
