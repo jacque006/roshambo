@@ -15,6 +15,13 @@ unconstrained fn test_initializer() {
 }
 
 #[test]
+unconstrained fn test_run_mpc() {
+    let (env, voting_contract_address, _) = utils::setup();
+
+    RoshamboGame::at(voting_contract_address).run_mpc().call(&mut env.public());
+}
+
+#[test]
 unconstrained fn test_check_vote_status() {
     let (_, voting_contract_address, _) = utils::setup();
 

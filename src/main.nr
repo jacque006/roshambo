@@ -10,6 +10,9 @@ pub contract RoshamboGame {
     use dep::aztec::prelude::{AztecAddress, Map, PublicImmutable, PublicMutable};
     use dep::aztec::protocol_types::traits::{Hash, ToField};
 
+    use std::hash::poseidon2::Poseidon2::hash as poseidon2;
+    use mpclib::selective_disclosure::selective_disclosure::{execute_round, RoundState, UserOutputState};
+
     #[storage]
     struct Storage<Context> {
         admin: PublicMutable<AztecAddress, Context>, // admin can end vote
@@ -25,6 +28,99 @@ pub contract RoshamboGame {
         storage.admin.write(admin);
         storage.vote_ended.write(false);
         storage.active_at_block.initialize(context.block_number() as u32);
+    }
+
+    #[public]
+    fn run_mpc() {
+        let alice_secret = poseidon2([0], 1);
+        let alice_mask = poseidon2([1], 1);
+        let bob_secret = poseidon2([2], 1);
+        let bob_mask = poseidon2([3], 1);
+
+        let round_state: RoundState<4, 2> = RoundState {
+            round_number: 1,
+            user_encrypt_secret_hashes: [
+                poseidon2([alice_secret, -1], 2),
+                poseidon2([bob_secret, -1], 2),
+            ],
+            user_mask_secret_hashes: [poseidon2([alice_mask, -1], 2), poseidon2([bob_mask, -1], 2)],
+            previous_output_states: [UserOutputState::default(); 2],
+        };
+
+        let previous_round_hash = round_state.hash();
+        let alice_state = [0, 1, 2, 3];
+        let alice_reveal = [0, 1, 0, 1];
+        let bob_state = [-1, -2, -3, -4];
+        let bob_reveal = [1, 0, 1, 0];
+
+        // after executing. we have ciphertexts and mask commitments, but no mask reveal commitments
+        let alice_output = execute_round(
+            alice_state,
+            alice_reveal,
+            alice_secret,
+            alice_mask,
+            round_state,
+            previous_round_hash,
+            0,
+        );
+
+        let round_state = round_state.update([alice_output.0, round_state.previous_output_states[1]]);
+        let previous_round_hash = round_state.hash();
+
+        let bob_output = execute_round(
+            bob_state,
+            bob_reveal,
+            bob_secret,
+            bob_mask,
+            round_state,
+            previous_round_hash,
+            1,
+        );
+
+        let round_state = round_state.update([round_state.previous_output_states[0], bob_output.0]);
+        let previous_round_hash = round_state.hash();
+
+        let alice_output = execute_round(
+            alice_state,
+            alice_reveal,
+            alice_secret,
+            alice_mask,
+            round_state,
+            previous_round_hash,
+            0,
+        );
+
+        let round_state = round_state.update([alice_output.0, round_state.previous_output_states[1]]);
+        let previous_round_hash = round_state.hash();
+
+        let bob_output = execute_round(
+            bob_state,
+            bob_reveal,
+            bob_secret,
+            bob_mask,
+            round_state,
+            previous_round_hash,
+            1,
+        );
+
+        let alice_decrypted = alice_output.1[0];
+        let bob_decrypted = bob_output.1[0];
+
+        assert(alice_decrypted[0].is_some() == false);
+        assert(alice_decrypted[1].is_some() == true);
+        assert(alice_decrypted[2].is_some() == false);
+        assert(alice_decrypted[3].is_some() == true);
+
+        assert(alice_decrypted[1].unwrap_unchecked() == -2);
+        assert(alice_decrypted[3].unwrap_unchecked() == -4);
+
+        assert(bob_decrypted[0].is_some() == true);
+        assert(bob_decrypted[1].is_some() == false);
+        assert(bob_decrypted[2].is_some() == true);
+        assert(bob_decrypted[3].is_some() == false);
+
+        assert(bob_decrypted[0].unwrap_unchecked() == 0);
+        assert(bob_decrypted[2].unwrap_unchecked() == 2);
     }
 
     #[private]
@@ -58,79 +154,3 @@ pub contract RoshamboGame {
         storage.tally.at(candidate).read()
     }
 }
-
-/*
-let alice_secret = std::hash::poseidon2::Poseidon2::hash([0], 1);
-    let alice_mask = std::hash::poseidon2::Poseidon2::hash([1], 1);
-    let bob_secret = std::hash::poseidon2::Poseidon2::hash([2], 1);
-    let bob_mask = std::hash::poseidon2::Poseidon2::hash([3], 1);
-
-    let round_state: RoundState<4, 2> = RoundState {
-        round_number: 1,
-        user_encrypt_secret_hashes: [
-            poseidon2([alice_secret, -1], 2),
-            poseidon2([bob_secret, -1], 2),
-        ],
-        user_mask_secret_hashes: [poseidon2([alice_mask, -1], 2), poseidon2([bob_mask, -1], 2)],
-        previous_output_states: [UserOutputState::default(); 2],
-    };
-
-    let previous_round_hash = round_state.hash();
-    let alice_state = [0, 1, 2, 3];
-    let alice_reveal = [0, 1, 0, 1];
-    let bob_state = [-1, -2, -3, -4];
-    let bob_reveal = [1, 0, 1, 0];
-
-    // after executing. we have ciphertexts and mask commitments, but no mask reveal commitments
-    let alice_output = execute_round(
-        alice_state,
-        alice_reveal,
-        alice_secret,
-        alice_mask,
-        round_state,
-        previous_round_hash,
-        0,
-    );
-
-    let round_state = round_state.update([alice_output.0, round_state.previous_output_states[1]]);
-    let previous_round_hash = round_state.hash();
-
-    let bob_output = execute_round(
-        bob_state,
-        bob_reveal,
-        bob_secret,
-        bob_mask,
-        round_state,
-        previous_round_hash,
-        1,
-    );
-
-    let round_state = round_state.update([round_state.previous_output_states[0], bob_output.0]);
-    let previous_round_hash = round_state.hash();
-
-    let alice_output = execute_round(
-        alice_state,
-        alice_reveal,
-        alice_secret,
-        alice_mask,
-        round_state,
-        previous_round_hash,
-        0,
-    );
-
-    let round_state = round_state.update([alice_output.0, round_state.previous_output_states[1]]);
-    let previous_round_hash = round_state.hash();
-
-    let bob_output = execute_round(
-        bob_state,
-        bob_reveal,
-        bob_secret,
-        bob_mask,
-        round_state,
-        previous_round_hash,
-        1,
-    );
-
-    let alice_decrypted = alice_output.1[0];
-    let bob_decrypted = bob_output.1[0];
-*/

@@ -88,7 +88,6 @@ describe("Voting", () => {
 
     it("Deploys the contract", async () => {
         const salt = Fr.random();
-        const VotingContractArtifact = RoshamboGameContractArtifact
         const accounts = await Promise.all(
             (await generateSchnorrAccounts(2)).map(
                 async a => await getSchnorrAccount(pxe, a.secret, a.signingKey, a.salt)
@@ -99,13 +98,13 @@ describe("Voting", () => {
         const [deployerWallet, adminWallet] = daWallets;
         const [deployerAddress, adminAddress] = daWallets.map(w => w.getAddress());
 
-        const deploymentData = await getContractInstanceFromDeployParams(VotingContractArtifact,
+        const deploymentData = await getContractInstanceFromDeployParams(RoshamboGameContractArtifact,
             {
                 constructorArgs: [adminAddress],
                 salt,
                 deployer: deployerWallet.getAddress()
             });
-        const deployer = new ContractDeployer(VotingContractArtifact, deployerWallet);
+        const deployer = new ContractDeployer(RoshamboGameContractArtifact, deployerWallet);
         const tx = deployer.deploy(adminAddress).send({
             contractAddressSalt: salt,
             fee: { paymentMethod: sponsoredPaymentMethod } // without the sponsoredFPC the deployment fails, thus confirming it works
