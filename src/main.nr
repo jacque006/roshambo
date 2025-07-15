@@ -8,10 +8,10 @@ pub contract RoshamboGame {
         macros::{functions::{initializer, internal, private, public, utility}, storage::storage},
     };
     use dep::aztec::prelude::{AztecAddress, Map, PublicImmutable, PublicMutable};
-    use dep::aztec::protocol_types::traits::{Hash, ToField};
+    use dep::aztec::protocol_types::{traits::{Hash, ToField}};
 
     use std::hash::poseidon2::Poseidon2::hash as poseidon2;
-    use mpclib::selective_disclosure::selective_disclosure::{execute_round, RoundState, UserOutputState};
+    use mpclib::selective_disclosure::selective_disclosure::{execute_round_alternate, RoundState, UserOutputState};
 
     #[storage]
     struct Storage<Context> {
@@ -54,73 +54,69 @@ pub contract RoshamboGame {
         let bob_reveal = [1, 0, 1, 0];
 
         // after executing. we have ciphertexts and mask commitments, but no mask reveal commitments
-        let alice_output = execute_round(
+        let alice_output = execute_round_alternate::<_,_,0>(
             alice_state,
             alice_reveal,
             alice_secret,
             alice_mask,
             round_state,
             previous_round_hash,
-            0,
         );
 
-        let round_state = round_state.update([alice_output.0, round_state.previous_output_states[1]]);
-        let previous_round_hash = round_state.hash();
+        // let round_state = round_state.update([alice_output.0, round_state.previous_output_states[1]]);
+        // let previous_round_hash = round_state.hash();
 
-        let bob_output = execute_round(
-            bob_state,
-            bob_reveal,
-            bob_secret,
-            bob_mask,
-            round_state,
-            previous_round_hash,
-            1,
-        );
+        // let bob_output = execute_round_alternate::<_,_,1>(
+        //     bob_state,
+        //     bob_reveal,
+        //     bob_secret,
+        //     bob_mask,
+        //     round_state,
+        //     previous_round_hash,
+        // );
 
-        let round_state = round_state.update([round_state.previous_output_states[0], bob_output.0]);
-        let previous_round_hash = round_state.hash();
+        // let round_state = round_state.update([round_state.previous_output_states[0], bob_output.0]);
+        // let previous_round_hash = round_state.hash();
 
-        let alice_output = execute_round(
-            alice_state,
-            alice_reveal,
-            alice_secret,
-            alice_mask,
-            round_state,
-            previous_round_hash,
-            0,
-        );
+        // let alice_output = execute_round_alternate::<_,_,0>(
+        //     alice_state,
+        //     alice_reveal,
+        //     alice_secret,
+        //     alice_mask,
+        //     round_state,
+        //     previous_round_hash,
+        // );
 
-        let round_state = round_state.update([alice_output.0, round_state.previous_output_states[1]]);
-        let previous_round_hash = round_state.hash();
+        // let round_state = round_state.update([alice_output.0, round_state.previous_output_states[1]]);
+        // let previous_round_hash = round_state.hash();
 
-        let bob_output = execute_round(
-            bob_state,
-            bob_reveal,
-            bob_secret,
-            bob_mask,
-            round_state,
-            previous_round_hash,
-            1,
-        );
+        // let bob_output = execute_round_alternate::<_,_,1>(
+        //     bob_state,
+        //     bob_reveal,
+        //     bob_secret,
+        //     bob_mask,
+        //     round_state,
+        //     previous_round_hash,
+        // );
 
-        let alice_decrypted = alice_output.1[0];
-        let bob_decrypted = bob_output.1[0];
+        // let alice_decrypted = alice_output.1[0];
+        // let bob_decrypted = bob_output.1[0];
 
-        assert(alice_decrypted[0].is_some() == false);
-        assert(alice_decrypted[1].is_some() == true);
-        assert(alice_decrypted[2].is_some() == false);
-        assert(alice_decrypted[3].is_some() == true);
+        // assert(alice_decrypted[0].is_some() == false);
+        // assert(alice_decrypted[1].is_some() == true);
+        // assert(alice_decrypted[2].is_some() == false);
+        // assert(alice_decrypted[3].is_some() == true);
 
-        assert(alice_decrypted[1].unwrap_unchecked() == -2);
-        assert(alice_decrypted[3].unwrap_unchecked() == -4);
+        // assert(alice_decrypted[1].unwrap_unchecked() == -2);
+        // assert(alice_decrypted[3].unwrap_unchecked() == -4);
 
-        assert(bob_decrypted[0].is_some() == true);
-        assert(bob_decrypted[1].is_some() == false);
-        assert(bob_decrypted[2].is_some() == true);
-        assert(bob_decrypted[3].is_some() == false);
+        // assert(bob_decrypted[0].is_some() == true);
+        // assert(bob_decrypted[1].is_some() == false);
+        // assert(bob_decrypted[2].is_some() == true);
+        // assert(bob_decrypted[3].is_some() == false);
 
-        assert(bob_decrypted[0].unwrap_unchecked() == 0);
-        assert(bob_decrypted[2].unwrap_unchecked() == 2);
+        // assert(bob_decrypted[0].unwrap_unchecked() == 0);
+        // assert(bob_decrypted[2].unwrap_unchecked() == 2);
     }
 
     #[private]

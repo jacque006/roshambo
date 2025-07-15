@@ -130,6 +130,12 @@ describe("Voting", () => {
         expect(receiptAfterMined.contract.instance.address).toEqual(deploymentData.address)
     })
 
+    it("MPC Test", async () => {
+        const contract = await RoshamboGameContract.deploy(firstWallet, firstWallet.getAddress()).send({ fee: { paymentMethod: sponsoredPaymentMethod } }).deployed();
+        const gas = await contract.methods.run_mpc().estimateGas({ fee: { paymentMethod: sponsoredPaymentMethod } });
+        console.log("Run MPC gas costs: ", JSON.stringify(gas, null, 4));
+    })
+
     it("It casts a vote", async () => {
         const candidate = new Fr(1)
 

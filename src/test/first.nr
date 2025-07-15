@@ -18,7 +18,10 @@ unconstrained fn test_initializer() {
 unconstrained fn test_run_mpc() {
     let (env, voting_contract_address, _) = utils::setup();
 
-    RoshamboGame::at(voting_contract_address).run_mpc().call(&mut env.public());
+    RoshamboGame::at(voting_contract_address)
+        .run_mpc()
+        // .with_gas(GasOpts::default())
+        .call(&mut env.public());
 }
 
 #[test]
